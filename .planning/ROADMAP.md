@@ -12,7 +12,7 @@ One phase delivers the complete app: a single-page HEIC-to-JPEG converter where 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Working App** - Complete HEIC-to-JPEG converter — drop files, set quality, download results
+- [x] **Phase 1: Working App** - Complete HEIC-to-JPEG converter — drop files, set quality, download results (completed 2026-03-08)
 
 ## Phase Details
 
@@ -39,4 +39,4 @@ Phases execute in numeric order: 1
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Working App | 1/2 | In progress | - |
+| 1. Working App | 2/2 | Complete   | 2026-03-08 |

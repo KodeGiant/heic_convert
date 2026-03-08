@@ -12,13 +12,13 @@
 
 ### Conversion
 
-- [ ] **CONV-01**: Selected HEIC files are converted to JPEG in the browser (client-side)
+- [x] **CONV-01**: Selected HEIC files are converted to JPEG in the browser (client-side)
 - [x] **CONV-02**: User can set JPEG quality level before converting (e.g. slider 1–100)
 
 ### Download
 
-- [ ] **DL-01**: User can download each converted JPEG individually
-- [ ] **DL-02**: User can download all converted JPEGs bundled as a single ZIP file
+- [x] **DL-01**: User can download each converted JPEG individually
+- [x] **DL-02**: User can download all converted JPEGs bundled as a single ZIP file
 
 ## v2 Requirements
 
@@ -52,10 +52,10 @@
 |-------------|-------|--------|
 | INPUT-01 | Phase 1 | Complete (01-01) |
 | INPUT-02 | Phase 1 | Complete (01-01) |
-| CONV-01 | Phase 1 | Pending |
+| CONV-01 | Phase 1 | Complete |
 | CONV-02 | Phase 1 | Complete (01-01) |
-| DL-01 | Phase 1 | Pending |
-| DL-02 | Phase 1 | Pending |
+| DL-01 | Phase 1 | Complete |
+| DL-02 | Phase 1 | Complete |
 
 **Coverage:**
 - v1 requirements: 6 total
