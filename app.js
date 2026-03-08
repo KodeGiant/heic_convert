@@ -112,7 +112,8 @@
         appendResultItem(name, blob);
       } catch (err) {
         failCount++;
-        appendErrorItem(file.name);
+        console.error('heic2any error for', file.name, ':', err);
+        appendErrorItem(file.name, err);
       }
     }
 
@@ -125,11 +126,13 @@
     }
 
     if (failCount > 0 && convertedBlobs.length === 0) {
-      // All files failed
+      // All files failed — surface the actual error
+      const isFileProtocol = location.protocol === 'file:';
       statusEl.removeAttribute('hidden');
       statusEl.classList.add('error');
-      statusEl.textContent =
-        'Conversion failed. Ensure files are valid HEIC images.';
+      statusEl.textContent = isFileProtocol
+        ? 'Conversion failed. Open the page via a local server (python3 -m http.server), not file://.'
+        : 'Conversion failed. Check the browser console for details.';
     }
   });
 
@@ -145,10 +148,11 @@
     resultsList.appendChild(li);
   }
 
-  function appendErrorItem(fileName) {
+  function appendErrorItem(fileName, err) {
     const li = document.createElement('li');
     li.className = 'result-item';
-    li.innerHTML = '<span>' + escapeHtml(fileName) + ' \u2014 failed</span>';
+    const reason = err && err.message ? ' (' + escapeHtml(err.message) + ')' : '';
+    li.innerHTML = '<span>' + escapeHtml(fileName) + ' \u2014 failed' + reason + '</span>';
     resultsList.appendChild(li);
   }
 
