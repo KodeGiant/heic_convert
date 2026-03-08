@@ -79,7 +79,7 @@
   // ─── File input change (INPUT-02) ─────────────────────────────────────────
 
   fileInput.addEventListener('change', function () {
-    selectedFiles = Array.from(fileInput.files);
+    selectedFiles = Array.from(fileInput.files).filter(isHeic);
     updateConvertBtn();
   });
 
@@ -102,7 +102,11 @@
 
     for (const file of selectedFiles) {
       try {
-        const blob = await heic2any({ blob: file, toType: 'image/jpeg', quality }); // eslint-disable-line no-undef
+        const result = await heic2any({ blob: file, toType: 'image/jpeg', quality }); // eslint-disable-line no-undef
+        // heic2any returns a Blob for single-image files but an Array<Blob> for
+        // multi-image containers (e.g. Apple Live Photos, burst sequences).
+        // Normalise to always work with a single Blob.
+        const blob = Array.isArray(result) ? result[0] : result;
         const name = file.name.replace(/\.heic$/i, '.jpg');
         convertedBlobs.push({ name, blob });
         appendResultItem(name, blob);
