@@ -7,13 +7,13 @@
 
 ### File Input
 
-- [ ] **INPUT-01**: User can drag and drop one or more HEIC files onto the app
-- [ ] **INPUT-02**: User can click a button to open a file picker and select HEIC files
+- [x] **INPUT-01**: User can drag and drop one or more HEIC files onto the app
+- [x] **INPUT-02**: User can click a button to open a file picker and select HEIC files
 
 ### Conversion
 
 - [ ] **CONV-01**: Selected HEIC files are converted to JPEG in the browser (client-side)
-- [ ] **CONV-02**: User can set JPEG quality level before converting (e.g. slider 1–100)
+- [x] **CONV-02**: User can set JPEG quality level before converting (e.g. slider 1–100)
 
 ### Download
 
@@ -50,10 +50,10 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INPUT-01 | Phase 1 | Pending |
-| INPUT-02 | Phase 1 | Pending |
+| INPUT-01 | Phase 1 | Complete (01-01) |
+| INPUT-02 | Phase 1 | Complete (01-01) |
 | CONV-01 | Phase 1 | Pending |
-| CONV-02 | Phase 1 | Pending |
+| CONV-02 | Phase 1 | Complete (01-01) |
 | DL-01 | Phase 1 | Pending |
 | DL-02 | Phase 1 | Pending |
 

@@ -29,7 +29,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — HTML structure and CSS styling for the converter page
+- [x] 01-01-PLAN.md — HTML structure and CSS styling for the converter page
 - [ ] 01-02-PLAN.md — JavaScript behavior: file input, conversion, and downloads
 
 ## Progress
@@ -39,4 +39,4 @@ Phases execute in numeric order: 1
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Working App | 0/2 | Not started | - |
+| 1. Working App | 1/2 | In progress | - |
