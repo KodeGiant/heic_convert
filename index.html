@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HEIC to JPEG Converter</title>
+  <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="container">
+    <h1>HEIC to JPEG</h1>
+    <p class="subtitle">Convert Apple photos in your browser — nothing leaves your device</p>
+
+    <!-- Drop zone (INPUT-01 target) -->
+    <div id="drop-zone" class="drop-zone">
+      <p>Drop HEIC files here</p>
+      <p>or</p>
+      <label for="file-input" class="file-label">Choose files</label>
+      <input type="file" id="file-input" accept=".heic,.HEIC,image/heic,image/heif" multiple hidden>
+    </div>
+
+    <!-- Quality control (CONV-02) -->
+    <div class="quality-control">
+      <label for="quality-slider">JPEG Quality: <span id="quality-value">85</span>%</label>
+      <input type="range" id="quality-slider" min="1" max="100" value="85">
+    </div>
+
+    <!-- Convert action -->
+    <button id="convert-btn" disabled>Convert</button>
+
+    <!-- Status messages -->
+    <p id="status" class="status" hidden></p>
+
+    <!-- Results area (DL-01, DL-02 targets) -->
+    <div id="results" hidden>
+      <div class="results-header">
+        <h2>Converted files</h2>
+        <button id="download-all-btn">Download all as ZIP</button>
+      </div>
+      <ul id="results-list"></ul>
+    </div>
+  </div>
+</body>
+</html>
