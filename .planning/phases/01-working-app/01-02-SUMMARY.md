@@ -74,8 +74,10 @@ Each task was committed atomically:
 
 1. **Task 1 + Task 2: Implement all app.js behavior** - `9fb8d95` (feat)
    - Both tasks implemented in a single file; committed together as the complete implementation
+2. **Fix: heic2any array return normalisation + picker extension filter** - `1b18531` (fix)
+   - Applied during checkpoint resolution after user reported conversion failure
 
-**Plan metadata:** (pending final docs commit)
+**Plan metadata:** `04b868e` (docs: complete JavaScript application logic plan)
 
 ## Files Created/Modified
 
@@ -100,14 +102,29 @@ Each task was committed atomically:
 - **Verification:** escapeHtml present in app.js; special chars in name produce safe HTML
 - **Committed in:** 9fb8d95 (Task 1+2 commit)
 
+**2. [Rule 1 - Bug] heic2any returns Array<Blob> for multi-image HEIC containers**
+- **Found during:** Task 3 (checkpoint) — user reported "Conversion failed. Ensure files are valid HEIC images."
+- **Issue:** `heic2any` returns a single `Blob` for standard single-image HEIC files but an `Array<Blob>` for multi-image containers (Apple Live Photos, burst sequences). Passing the raw result to `URL.createObjectURL` fails when given an array, causing every file to land in the catch block and report as failed.
+- **Fix:** Added `const blob = Array.isArray(result) ? result[0] : result;` after the `heic2any` call to normalise the return value regardless of input type.
+- **Files modified:** app.js (line 109)
+- **Verification:** Conversion succeeds for standard HEIC files; multi-image containers yield the first frame.
+- **Committed in:** `1b18531`
+
+**3. [Rule 1 - Bug] fileInput change handler missing extension filter**
+- **Found during:** Task 3 (same fix pass as deviation 2)
+- **Issue:** The `drop` handler applied `isHeic()` filtering but the `fileInput change` handler did not, allowing non-HEIC files via the picker to enter `selectedFiles` and fail conversion silently.
+- **Fix:** Added `.filter(isHeic)` in the `change` handler to match the drop handler.
+- **Files modified:** app.js (line 82)
+- **Committed in:** `1b18531`
+
 ---
 
-**Total deviations:** 1 auto-fixed (1 missing critical - XSS prevention)
-**Impact on plan:** Security fix for adversarial filenames. No scope creep.
+**Total deviations:** 3 auto-fixed (1 missing critical - XSS prevention; 2 Rule 1 bugs)
+**Impact on plan:** All fixes required for correct, secure operation. No scope creep.
 
 ## Issues Encountered
 
-None.
+- heic2any's dual return type (single `Blob` vs `Array<Blob>`) is documented in the library readme but not obviously discoverable. The library returns an array when the input file is a multi-image HEIC container (Apple Live Photos, burst shots). The fix is a one-liner `Array.isArray` guard.
 
 ## User Setup Required
 
@@ -125,6 +142,7 @@ None - no external service configuration required.
 - FOUND: /home/vs/src/heic_convert/app.js
 - FOUND: /home/vs/src/heic_convert/.planning/phases/01-working-app/01-02-SUMMARY.md
 - FOUND commit 9fb8d95 (Task 1+2 implementation)
+- FOUND commit 1b18531 (heic2any array-return fix + picker filter fix)
 
 ---
 *Phase: 01-working-app*

@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-02-PLAN.md tasks — awaiting human checkpoint verification
-last_updated: "2026-03-08T13:37:00.915Z"
+stopped_at: Completed 01-02-PLAN.md — checkpoint fix applied, all tasks done
+last_updated: "2026-03-08T13:47:38.738Z"
 last_activity: 2026-03-08 — Completed 01-01 (HTML structure and CSS styling)
 progress:
   total_phases: 1
@@ -67,6 +67,7 @@ Recent decisions affecting current work:
 - [Phase 01-02]: IIFE wrapper scopes all state/handlers without polluting global scope
 - [Phase 01-02]: Sequential for...of + await conversion loop avoids memory spikes vs Promise.all on large batches
 - [Phase 01-02]: escapeHtml() applied to filename injections in innerHTML to prevent XSS from adversarial filenames
+- [Phase 01-02]: heic2any result normalised with Array.isArray check — library returns single Blob for standard HEIC and Array<Blob> for multi-image containers (Live Photos, bursts)
 
 ### Pending Todos
 
@@ -78,6 +79,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-08T13:37:00.914Z
-Stopped at: Completed 01-02-PLAN.md tasks — awaiting human checkpoint verification
+Last session: 2026-03-08T13:47:35.283Z
+Stopped at: Completed 01-02-PLAN.md — checkpoint fix applied, all tasks done
 Resume file: None
