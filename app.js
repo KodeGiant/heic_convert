@@ -102,7 +102,10 @@
 
     for (const file of selectedFiles) {
       try {
-        const result = await heic2any({ blob: file, toType: 'image/jpeg', quality }); // eslint-disable-line no-undef
+        // File objects may have an empty/wrong MIME type for HEIC on some browsers.
+        // Re-wrap as a typed Blob so heic2any can identify the format.
+        const heicBlob = new Blob([await file.arrayBuffer()], { type: 'image/heic' });
+        const result = await heic2any({ blob: heicBlob, toType: 'image/jpeg', quality }); // eslint-disable-line no-undef
         // heic2any returns a Blob for single-image files but an Array<Blob> for
         // multi-image containers (e.g. Apple Live Photos, burst sequences).
         // Normalise to always work with a single Blob.
