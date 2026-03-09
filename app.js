@@ -114,9 +114,19 @@
         convertedBlobs.push({ name, blob });
         appendResultItem(name, blob);
       } catch (err) {
-        failCount++;
-        console.error('heic2any error for', file.name, ':', err);
-        appendErrorItem(file.name, err);
+        // heic2any throws {code:1, message:'ERR_USER Image is already browser readable: ...'}
+        // when the file is already a JPEG/PNG (e.g. iCloud-transcoded HEIC, or "Most Compatible" iPhone setting).
+        // In that case, pass the file through unchanged.
+        if (err && err.code === 1 && err.message && err.message.includes('already browser readable')) {
+          const passthroughBlob = new Blob([await file.arrayBuffer()], { type: 'image/jpeg' });
+          const name = file.name.replace(/\.heic$/i, '.jpg');
+          convertedBlobs.push({ name, blob: passthroughBlob });
+          appendResultItem(name, passthroughBlob);
+        } else {
+          failCount++;
+          console.error('heic2any error for', file.name, ':', err);
+          appendErrorItem(file.name, err);
+        }
       }
     }
 
