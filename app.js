@@ -1,4 +1,4 @@
-// HEIC to JPEG Converter — app.js
+// HEIC to JPEG / GIF to video Converter — app.js
 // Loaded with defer; DOM is guaranteed to be ready.
 
 (function () {
@@ -17,13 +17,33 @@
   const resultsList    = document.getElementById('results-list');
   const downloadAllBtn = document.getElementById('download-all-btn');
 
-  // Original drop-zone hint text (restored when selection is cleared)
-  const DROP_HINT = 'Drop HEIC files here';
+  const DROP_HINT = 'Drop HEIC or GIF files here';
+
+  // ─── lazy imports ─────────────────────────────────────────────────────────
+  let gifuct = null;
+  async function getGifuct() {
+    if (!gifuct) gifuct = await import('https://esm.sh/gifuct-js@2.1.2');
+    return gifuct;
+  }
+
+  let mp4muxerMod = null;
+  async function getMp4Muxer() {
+    if (!mp4muxerMod) mp4muxerMod = await import('https://esm.sh/mp4-muxer@4');
+    return mp4muxerMod;
+  }
 
   // ─── Helpers ──────────────────────────────────────────────────────────────
 
   function isHeic(file) {
     return file.name.toLowerCase().endsWith('.heic');
+  }
+
+  function isGif(file) {
+    return file.name.toLowerCase().endsWith('.gif') || file.type === 'image/gif';
+  }
+
+  function isSupportedFile(file) {
+    return isHeic(file) || isGif(file);
   }
 
   function updateConvertBtn() {
@@ -62,14 +82,11 @@
   dropZone.addEventListener('drop', function (e) {
     e.preventDefault();
     dropZone.classList.remove('dragover');
-    const files = Array.from(e.dataTransfer.files).filter(isHeic);
-    selectedFiles = files;
+    selectedFiles = Array.from(e.dataTransfer.files).filter(isSupportedFile);
     updateConvertBtn();
   });
 
   // ─── Click to open file picker (INPUT-02) ─────────────────────────────────
-  // The <label for="file-input"> already opens the picker natively.
-  // This handler covers clicks on the drop-zone background itself.
 
   dropZone.addEventListener('click', function (e) {
     if (e.target.closest('label') || e.target === fileInput) return;
@@ -79,7 +96,7 @@
   // ─── File input change (INPUT-02) ─────────────────────────────────────────
 
   fileInput.addEventListener('change', function () {
-    selectedFiles = Array.from(fileInput.files).filter(isHeic);
+    selectedFiles = Array.from(fileInput.files).filter(isSupportedFile);
     updateConvertBtn();
   });
 
@@ -101,33 +118,10 @@
     let failCount = 0;
 
     for (const file of selectedFiles) {
-      try {
-        // File objects may have an empty/wrong MIME type for HEIC on some browsers.
-        // Re-wrap as a typed Blob so heic2any can identify the format.
-        const heicBlob = new Blob([await file.arrayBuffer()], { type: 'image/heic' });
-        const result = await heic2any({ blob: heicBlob, toType: 'image/jpeg', quality }); // eslint-disable-line no-undef
-        // heic2any returns a Blob for single-image files but an Array<Blob> for
-        // multi-image containers (e.g. Apple Live Photos, burst sequences).
-        // Normalise to always work with a single Blob.
-        const blob = Array.isArray(result) ? result[0] : result;
-        const name = file.name.replace(/\.heic$/i, '.jpg');
-        convertedBlobs.push({ name, blob });
-        appendResultItem(name, blob);
-      } catch (err) {
-        // heic2any throws {code:1, message:'ERR_USER Image is already browser readable: ...'}
-        // when the file is already a JPEG/PNG (e.g. iCloud-transcoded HEIC, or "Most Compatible" iPhone setting).
-        // In that case, pass the file through unchanged.
-        if (err && err.code === 1 && err.message && err.message.includes('already browser readable')) {
-          const passthroughBlob = new Blob([await file.arrayBuffer()], { type: 'image/jpeg' });
-          const name = file.name.replace(/\.heic$/i, '.jpg');
-          convertedBlobs.push({ name, blob: passthroughBlob });
-          appendResultItem(name, passthroughBlob);
-        } else {
-          failCount++;
-          console.error('heic2any error for', file.name, ':', err);
-          appendErrorItem(file.name, err);
-        }
-      }
+      const ok = isGif(file)
+        ? await convertGif(file)
+        : await convertHeic(file, quality);
+      if (!ok) failCount++;
     }
 
     // Restore convert button
@@ -139,7 +133,6 @@
     }
 
     if (failCount > 0 && convertedBlobs.length === 0) {
-      // All files failed — surface the actual error
       const isFileProtocol = location.protocol === 'file:';
       statusEl.removeAttribute('hidden');
       statusEl.classList.add('error');
@@ -148,6 +141,111 @@
         : 'Conversion failed. Check the browser console for details.';
     }
   });
+
+  async function convertHeic(file, quality) {
+    try {
+      const heicBlob = new Blob([await file.arrayBuffer()], { type: 'image/heic' });
+      const result = await heic2any({ blob: heicBlob, toType: 'image/jpeg', quality }); // eslint-disable-line no-undef
+      const blob = Array.isArray(result) ? result[0] : result;
+      const name = file.name.replace(/\.heic$/i, '.jpg');
+      convertedBlobs.push({ name, blob });
+      appendResultItem(name, blob);
+      return true;
+    } catch (err) {
+      if (err && err.code === 1 && err.message && err.message.includes('already browser readable')) {
+        const passthroughBlob = new Blob([await file.arrayBuffer()], { type: 'image/jpeg' });
+        const name = file.name.replace(/\.heic$/i, '.jpg');
+        convertedBlobs.push({ name, blob: passthroughBlob });
+        appendResultItem(name, passthroughBlob);
+        return true;
+      }
+      console.error('heic2any error for', file.name, ':', err);
+      appendErrorItem(file.name, err);
+      return false;
+    }
+  }
+
+  async function convertGif(file) {
+    try {
+      statusEl.textContent = 'Parsing ' + file.name + '\u2026';
+
+      const { parseGIF, decompressFrames } = await getGifuct();
+      const buffer = await file.arrayBuffer();
+      const gif = parseGIF(buffer);
+      const frames = decompressFrames(gif, true);
+      if (!frames || frames.length === 0) throw new Error('No frames found');
+
+      const width = gif.lsd.width;
+      const height = gif.lsd.height;
+      // AVC requires even dimensions
+      const encW = width % 2 === 0 ? width : width + 1;
+      const encH = height % 2 === 0 ? height : height + 1;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = encW;
+      canvas.height = encH;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, encW, encH);
+
+      const tmp = document.createElement('canvas');
+      const tmpCtx = tmp.getContext('2d');
+
+      const { Muxer, ArrayBufferTarget } = await getMp4Muxer();
+      const muxer = new Muxer({
+        target: new ArrayBufferTarget(),
+        video: { codec: 'avc', width: encW, height: encH },
+        fastStart: 'in-memory',
+      });
+
+      const encoder = new VideoEncoder({
+        output: function (chunk, meta) { muxer.addVideoChunk(chunk, meta); },
+        error: function (e) { throw e; },
+      });
+      encoder.configure({ codec: 'avc1.42001f', width: encW, height: encH, bitrate: 2_000_000 });
+
+      statusEl.textContent = 'Encoding ' + file.name + '\u2026';
+      let timestamp = 0; // microseconds
+
+      for (const frame of frames) {
+        const snapshot = frame.disposalType === 3
+          ? ctx.getImageData(0, 0, encW, encH) : null;
+
+        tmp.width = frame.dims.width;
+        tmp.height = frame.dims.height;
+        tmpCtx.putImageData(new ImageData(frame.patch, frame.dims.width, frame.dims.height), 0, 0);
+        ctx.drawImage(tmp, frame.dims.left, frame.dims.top);
+
+        const duration = Math.max(frame.delay || 100, 20) * 1000; // delay already in ms → µs
+        const vf = new VideoFrame(canvas, { timestamp: timestamp, duration: duration });
+        encoder.encode(vf, { keyFrame: timestamp === 0 });
+        vf.close();
+        timestamp += duration;
+
+        if (frame.disposalType === 2) {
+          ctx.clearRect(frame.dims.left, frame.dims.top, frame.dims.width, frame.dims.height);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(frame.dims.left, frame.dims.top, frame.dims.width, frame.dims.height);
+        } else if (frame.disposalType === 3 && snapshot) {
+          ctx.putImageData(snapshot, 0, 0);
+        }
+      }
+
+      await encoder.flush();
+      muxer.finalize();
+
+      const blob = new Blob([muxer.target.buffer], { type: 'video/mp4' });
+      const name = file.name.replace(/\.gif$/i, '.mp4');
+      convertedBlobs.push({ name, blob });
+      appendResultItem(name, blob);
+      statusEl.textContent = 'Converting\u2026';
+      return true;
+    } catch (err) {
+      console.error('GIF conversion error for', file.name, ':', err);
+      appendErrorItem(file.name, err);
+      return false;
+    }
+  }
 
   // ─── Result item injection (DL-01) ────────────────────────────────────────
 

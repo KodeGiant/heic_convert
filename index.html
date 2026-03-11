@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HEIC to JPEG Converter</title>
+  <title>HEIC & GIF Converter</title>
   <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="app.js" defer></script>
@@ -173,15 +173,15 @@
 </head>
 <body>
   <div class="container">
-    <h1>HEIC to JPEG</h1>
-    <p class="subtitle">Convert Apple photos in your browser — nothing leaves your device</p>
+    <h1>HEIC &amp; GIF Converter</h1>
+    <p class="subtitle">Convert Apple photos &amp; animated GIFs in your browser — nothing leaves your device</p>
 
     <!-- Drop zone (INPUT-01 target) -->
     <div id="drop-zone" class="drop-zone">
-      <p>Drop HEIC files here</p>
+      <p>Drop HEIC or GIF files here</p>
       <p>or</p>
       <label for="file-input" class="file-label">Choose files</label>
-      <input type="file" id="file-input" accept=".heic,.HEIC,image/heic,image/heif" multiple hidden>
+      <input type="file" id="file-input" accept=".heic,.HEIC,image/heic,image/heif,.gif,image/gif" multiple hidden>
     </div>
 
     <!-- Quality control (CONV-02) -->
